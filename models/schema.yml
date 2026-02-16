@@ -1,0 +1,222 @@
+version: 2
+
+models:
+
+  # ------------------------
+  # STAGING MODELS
+  # ------------------------
+
+  - name: orders_stg
+    description: Cleaned and deduplicated orders from Snowflake STG layer.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        tests:
+          - not_null
+
+      - name: store_id
+        tests:
+          - not_null
+
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CREATED','SHIPPED','DELIVERED','CANCELLED','RETURNED']
+
+  - name: order_items_stg
+    description: Line-level order items used to derive revenue.
+    columns:
+      - name: order_item_id
+        tests:
+          - not_null
+          - unique
+
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+             arguments:
+              to: ref('orders_stg')
+              field: order_id
+
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+             arguments:
+              to: ref('products_stg')
+              field: product_id
+
+      - name: quantity
+        tests:
+          - not_null
+
+      - name: unit_price
+        tests:
+          - not_null
+
+      - name: line_revenue
+        tests:
+          - not_null
+
+  - name: products_stg
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+
+      - name: product_name
+        tests:
+          - not_null
+
+      - name: brand
+        tests:
+          - not_null
+
+  - name: customers_stg
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+
+      - name: email
+        tests:
+          - not_null
+
+  - name: employees_stg
+    columns:
+      - name: employee_id
+        tests:
+          - not_null
+          - unique
+
+      - name: store_id
+        tests:
+          - not_null
+
+
+  # ------------------------
+  # FACT / DIM MODELS
+  # ------------------------
+
+  - name: orders_fact
+    description: Order-level fact table with revenue and SLA metrics.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+          - relationships:
+             arguments:
+              to: ref('orders_stg')
+              field: order_id
+
+
+
+      - name: net_order_revenue
+        tests:
+          - not_null
+
+  - name: dim_dates
+    description: Calendar dimension supporting seasonality analysis.
+    columns:
+      - name: date_id
+        tests:
+          - not_null
+          - unique
+
+      - name: full_date
+        tests:
+          - not_null
+
+      - name: year
+        tests:
+          - not_null
+
+      - name: month
+        tests:
+          - not_null
+
+  - name: dim_store
+    description: Store dimension providing regional context.
+    columns:
+      - name: store_id
+        tests:
+          - not_null
+          - unique
+
+      - name: store_name
+        tests:
+          - not_null
+
+      - name: region
+        tests:
+          - not_null
+
+  - name: customer_revenue_fact
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+             arguments:
+              to: ref('dim_customers')
+              field: customer_id
+
+      - name: net_revenue
+        tests:
+          - not_null
+
+  - name: store_sales_fact
+    description: "Daily aggregated store-level sales fact table"
+    columns:
+    - name: store_id
+      tests:
+        - not_null
+        - relationships:
+           arguments:
+            to: ref('dim_store')
+            field: store_id
+
+    - name: full_date
+      tests:
+        - not_null
+        - relationships:
+            arguments:
+             to: ref('dim_dates')
+             field: full_date
+
+    - name: net_revenue
+      tests:
+        - not_null
+
+    - name: order_count
+      tests:
+        - not_null
+
+    - name: cancelled_orders
+      tests:
+        - not_null
+
+
+  - name: product_sales_fact
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+             arguments:
+              to: ref('dim_products')
+              field: product_id
+
+      - name: units_sold
+        tests:
+          - not_null

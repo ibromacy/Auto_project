@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: auto_stg
+    database: AUTO_DB
+    schema: AUTO_SCHEMA
+    tables:
+      - name: stg_orders
+      - name: stg_products
+      - name: stg_customers
+      - name: stg_employees
+      - name:  stg_order_items
+
+      - name: dates
+      - name: stores
