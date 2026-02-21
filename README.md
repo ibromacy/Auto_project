@@ -183,7 +183,7 @@ Airflow is Dockerized and runs locally using docker-compose.
 Current Orchestration
 
 Airflow DAG triggers dbt build
-![Dag](assets/dag.png)
+![Dag](assets/docker.png)
 
 dbt dependency graph handled via Cosmos
 
