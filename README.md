@@ -39,15 +39,19 @@ Power BI (Import Mode + Incremental Refresh)
 Slack Alerts
 
 ###  🏗 Architectural Decisions & Trade-offs
-	•	Snowpipe + Streams & Tasks for incremental processing: Implemented event-driven ingestion with CDC and light upstream transformations to reduce downstream compute cost and keep dbt models business-focused.
-Trade-off: Transformation logic is distributed between Snowflake and dbt, requiring clear documentation.
-	•	dbt for dimensional modeling (Staging → Marts): Reserved dbt for standardization, modeling, and star schema design to ensure maintainability and semantic clarity.
+	Snowpipe + Streams & Tasks for incremental processing: Implemented event-driven ingestion with CDC and light upstream transformations to reduce downstream compute cost and keep dbt models business-focused.
+	Trade-off: Transformation logic is distributed between Snowflake and dbt, requiring clear documentation.
+	
+	dbt for dimensional modeling (Staging → Marts): Reserved dbt for standardization, modeling, and star schema design to ensure maintainability and semantic clarity.
 Trade-off: Additional modeling layer increases build time but strengthens governance and reusability.
-	•	Power BI Import Mode: Used Import mode to optimize dashboard performance and reduce warehouse query cost.
+
+	Power BI Import Mode: Used Import mode to optimize dashboard performance and reduce warehouse query cost.
 Trade-off: Data freshness depends on scheduled refresh rather than real-time queries.
-	•	Expose only Gold (Mart) models to BI: Restricted BI access to curated fact and dimension models to enforce metric consistency and cost control.
+
+	Expose only Gold (Mart) models to BI: Restricted BI access to curated fact and dimension models to enforce metric consistency and cost control.
 Trade-off: Requires upfront modeling discipline but improves data governance and reporting reliability.
-	•	Airflow (dbt Core) for orchestration: Moved from dbt cloud to dbt core to allow Dockerized Airflow to centralize ingestion and transformation workflows for production parity and extensibility.
+
+	Airflow (dbt Core) for orchestration: Moved from dbt cloud to dbt core to allow Dockerized Airflow to centralize ingestion and transformation workflows for production parity and extensibility.
 Trade-off: Increased setup and operational complexity compared to managed dbt Cloud scheduling.
 
 ### 🧠 Business Context
