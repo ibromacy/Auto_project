@@ -24,7 +24,7 @@ Slack notifications for monitoring
 The goal was to design a scalable, cost-conscious, enterprise-ready data platform.
 
 ### 🏗 Architecture
-
+![Architecture Diagram](assets/architecture.png)
 Pipeline Flow
 S3 → Snowpipe → Landing Tables
         ↓
@@ -134,6 +134,7 @@ This separation improves maintainability and cost control.
 
 ### 📊 Data Modeling 
 Medallion Architecture with Kimball Star Modelling
+![Modelling Diagram](assets/Star_model)
 Facts : Have it own atomic line table 
 
 orders_fact → 1 row per order
