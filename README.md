@@ -134,7 +134,7 @@ This separation improves maintainability and cost control.
 
 ### 📊 Data Modeling 
 Medallion Architecture with Kimball Star Modelling
-![Modelling Diagram](assets/Star_model)
+![Modelling Diagram](assets/star_model.png)
 Facts : Have it own atomic line table 
 
 orders_fact → 1 row per order
@@ -204,7 +204,7 @@ Avoid unnecessary dbt runs
 Full end-to-end observability
 
 ### 📈 Power BI Layer
-
+![Modelling Diagram](assets/star_model.png)
 Features:
 
 Executive Overview
