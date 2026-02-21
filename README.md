@@ -117,6 +117,8 @@ Basic casting
 Light standardization
 
 Maintaining incremental upstream state
+![Incremental load Diagram](assets/streams&task.png)
+
 
 Why not move everything to dbt?
 
@@ -133,8 +135,11 @@ Improves Snowflake compute efficiency
 This separation improves maintainability and cost control.
 
 ### 📊 Data Modeling 
-Medallion Architecture with Kimball Star Modelling
-![Modelling Diagram](assets/star_model.png)
+Medallion Architecture bronze,silver & gold 
+(facts & dimensions )
+![medallion Diagram](assets/marts_staging.png)
+Kimball Star Modelling
+![Modelling Diagram](assets/data_lineage.png)
 Facts : Have it own atomic line table 
 
 orders_fact → 1 row per order
@@ -160,22 +165,25 @@ Modeling Principles Applied
 Surrogate keys (date_id)
 
 Tested the quality of the data using single test , generic test and customised test as where appropriate 
+![Testing](assets/data_test.png)
 
 Grain awareness plus Semantic layer applied to have a uniform meaning across departments
 
 Avoided double aggregation
 
-Cancelled revenue excluded from net revenue (making sure 
+Cancelled revenue excluded from net revenue 
 
 Single source of truth defined at order grain
 
 ⚙ Orchestration (Current State)
 
 Airflow is Dockerized and runs locally using docker-compose.
+![Docker](assets/docker_compose.png)
 
 Current Orchestration
 
 Airflow DAG triggers dbt build
+![Dag](assets/dag.png)
 
 dbt dependency graph handled via Cosmos
 
@@ -208,16 +216,19 @@ Full end-to-end observability
 Features:
 
 Executive Overview
+![Overview Diagram](assets/executive_overview.png)
 
 Store Performance
+![Store Diagram](assets/store_performancedash.png)
 
 SLA & Operations
-
-Customer Analytics
+![SLA Diagram](assets/sla_dash.png)
 
 Product Performance
+![Product Diagram](assets/productsdash.png)
 
 Incremental Refresh (Date-based partitioning)
+![IncrementalR Diagram](assets/incremental_refresh.png)
 
 KPIs include:
 
