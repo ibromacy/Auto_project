@@ -128,7 +128,9 @@ Keeping technical cleaning upstream keeps dbt models cleaner and more readable
 
 Avoids overloading dbt with CDC logic
 
-Reduces repeated full scans
+Reduces repeated full scans 
+
+Helps in handling of late arriving data 
 
 Improves Snowflake compute efficiency
 
