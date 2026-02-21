@@ -158,6 +158,8 @@ Modeling Principles Applied
 
 Surrogate keys (date_id)
 
+Tested the quality of the data using single test , generic test and customised test as where appropriate 
+
 Grain awareness plus Semantic layer applied to have a uniform meaning across departments
 
 Avoided double aggregation
