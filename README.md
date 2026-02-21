@@ -175,7 +175,7 @@ Cancelled revenue excluded from net revenue
 
 Single source of truth defined at order grain
 
-⚙ Orchestration (Current State)
+### ⚙ Orchestration (Current State)
 
 Airflow is Dockerized and runs locally using docker-compose.
 ![Docker](assets/docker_compose.png)
