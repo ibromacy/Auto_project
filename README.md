@@ -219,7 +219,7 @@ Executive Overview
 ![Overview Diagram](assets/executive_overview.png)
 
 Store Performance
-![Store Diagram](assets/store_performancedash.png)
+![Store Diagram](assets/store_performacedash.png)
 
 SLA & Operations
 ![SLA Diagram](assets/sla_dash.png)
