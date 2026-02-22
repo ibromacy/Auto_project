@@ -24,7 +24,7 @@ Slack notifications for monitoring
 The goal was to design a scalable, cost-conscious, enterprise-ready data platform.
 
 ### 🏗 Architecture
-![Architecture Diagram](assets/architecture.png)
+![Architecture Diagram](assets/architectures.png)
 Pipeline Flow
 S3 → Snowpipe → Landing Tables
         ↓
@@ -138,10 +138,11 @@ This separation improves maintainability and cost control.
 
 ### 📊 Data Modeling 
 Medallion Architecture bronze,silver & gold 
-(facts & dimensions )
+(Facts & dimensions )
 ![medallion Diagram](assets/marts_staging.png)
-Kimball Star Modelling
-![Modelling Diagram](assets/data_lineage.png)
+![Data lineage Diagram](assets/data_lineage.png)
+Kimball Star Schema
+![Modelling Diagram](assets/star_model.png)
 Facts : Have it own atomic line table 
 
 orders_fact → 1 row per order
@@ -214,7 +215,6 @@ Avoid unnecessary dbt runs
 Full end-to-end observability
 
 ### 📈 Power BI Layer
-![Modelling Diagram](assets/star_model.png)
 Features:
 
 Executive Overview
