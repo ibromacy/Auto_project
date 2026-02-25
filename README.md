@@ -1,315 +1,365 @@
-# 🚗 Auto Project – End-to-End Modern Data Platform (Automotive Retail Analytics)
-### **📌 Project Overview**
+# 🚗 Auto Project — End-to-End Modern Data Platform
 
-This project simulates a production-grade automotive retail analytics platform inspired by real-world operations such as large UK automotive parts retailers.
+## Automotive Retail Analytics | Snowflake + dbt + Airflow + Power BI
 
-It demonstrates:
+### 📌 Overview
 
-Near real-time ingestion using Snowpipe
+This project simulates a production-style analytics platform for a UK automotive retail business (orders, customers, stores, products, SLA & delivery). The focus is on event-driven ingestion, incremental processing, governed modeling, and cost-efficient BI delivery.
 
-Change Data Capture (CDC) using Snowflake Streams
+Secure cloud ingestion from AWS S3 → Snowflake using IAM role–based authentication
 
-Technical transformation using Snowflake Tasks
+Near real-time ingestion with Snowpipe (auto-ingest)
 
-Business transformation using dbt Core
+Incremental CDC with Snowflake Streams to avoid full-table scans
 
-Kimball dimensional modeling
+Light technical transforms using Snowflake Tasks (dedupe + standardization)
 
-Orchestration using Apache Airflow (Dockerized on Windows)
+Business modeling in dbt Core using Medallion Architecture (Bronze → Silver → Gold)
 
-BI delivery using Power BI with Incremental Refresh
+Kimball Star Schema design with strict grain discipline and a single source of truth
 
-Slack notifications for monitoring
+Orchestration with Apache Airflow (Dockerized) + monitoring via Slack alerts
 
-The goal was to design a scalable, cost-conscious, enterprise-ready data platform.
+Power BI delivery using Import Mode + Incremental Refresh for performance and cost control
 
-### 🏗 Architecture
+### 🏗 Architecture 
 ![Architecture Diagram](assets/architectures.png)
-Pipeline Flow
-S3 → Snowpipe → Landing Tables
-        ↓
-Snowflake Streams + Tasks (CDC & light cleaning)
-        ↓
-Airflow (Docker)
-        ↓
-dbt Core (Staging + Marts)
-        ↓
-Power BI (Import Mode + Incremental Refresh)
-        ↓
-Slack Alerts
 
-###  🏗 Architectural Decisions & Trade-offs
-Snowpipe + Streams & Tasks for incremental processing: Implemented event-driven ingestion with CDC and light upstream transformations to reduce downstream compute cost and keep dbt models business-focused.
-Trade-off: Transformation logic is distributed between Snowflake and dbt, requiring clear documentation.
-	
-dbt for dimensional modeling (Staging → Marts): Reserved dbt for standardization, modeling, and star schema design to ensure maintainability and semantic clarity.
-Trade-off: Additional modeling layer increases build time but strengthens governance and reusability.
+Flow
+AWS S3 (Storage)
+→ Snowpipe (Auto-ingest)
+→ Snowflake Landing Tables (Bronze)
+→ Streams + Tasks (CDC + light transforms) (Silver)
+→ Airflow Orchestration
+→ dbt Core (Silver refinements + Gold marts)
+→ Power BI (Gold only, Import + Incremental Refresh)
+→ Slack alerts (success/failure monitoring)
 
-Power BI Import Mode: Used Import mode to optimize dashboard performance and reduce warehouse query cost.
-Trade-off: Data freshness depends on scheduled refresh rather than real-time queries.
-
-Expose only Gold (Mart) models to BI: Restricted BI access to curated fact and dimension models to enforce metric consistency and cost control.
-Trade-off: Requires upfront modeling discipline but improves data governance and reporting reliability.
-
-Airflow (dbt Core) for orchestration: Moved from dbt cloud to dbt core to allow Dockerized Airflow to centralize ingestion and transformation workflows for production parity and extensibility.
-Trade-off: Increased setup and operational complexity compared to managed dbt Cloud scheduling.
+Key design choice: Technical changes (CDC, dedupe, light standardization) start in Snowflake to keep dbt focused on business logic and dimensional modeling.
 
 ### 🧠 Business Context
 
-The dataset models an automotive retailer with:
+The dataset represents an automotive retailer with:
 
-Orders
-
-Order Items
+Orders, Order Items
 
 Customers
 
-Stores
+Stores & Regions
 
 Products
 
+SLA / Delivery metrics
+
 Regional Sales Targets
 
-SLA & Delivery Metrics
-
-### Business Questions Answered
+Example Questions Answered
 
 Which stores generate the highest revenue?
 
-How much revenue is lost due to cancellations?
-
-Which products drive seasonal performance?
+How much revenue is lost to cancellations?
 
 What is SLA on-time performance by region?
 
-What is customer churn rate?
+Which products drive seasonal performance?
 
-How does revenue compare vs monthly targets?
+How does revenue track vs monthly targets?
+
+What is customer churn rate over time?
 
 ### 🧱 Tech Stack
-Layer	Technology
-Storage	AWS S3
-Data Warehouse	Snowflake
-CDC	Snowflake Streams
-Technical Transformation	Snowflake Tasks
-Business Transformation	dbt Core
-Orchestration	Apache Airflow (Docker)
-Visualization	Power BI
-Monitoring	Slack Webhooks
 
-### 🔄 Ingestion & CDC Strategy
-Snowpipe
+Storage: AWS S3
 
-Auto-ingests CSV files from S3
+Warehouse / Lakehouse: Snowflake
 
-Event-driven architecture
+Ingestion: Snowpipe (auto-ingest)
 
-Eliminates manual load jobs
+CDC + Light Transform: Streams + Tasks
 
-Streams + Tasks (Design Decision)
+Transformation / Modeling: dbt Core
 
-Used for:
+Orchestration: Apache Airflow (Docker)
 
-Deduplication
+BI: Power BI (Import + Incremental Refresh)
 
-Basic casting
+Monitoring: Slack webhooks
 
-Light standardization
+Version Control: Git + GitHub
 
-Maintaining incremental upstream state
-![Incremental load Diagram](assets/streams&task.png)
+### 🔄 Ingestion & CDC (Step-by-Step)
+![Integration Diagram](assets/s3integration.png)
 
+1) Data Storage in AWS S3
 
-Why not move everything to dbt?
+Raw CSV extracts land in a structured S3 layout (typical production convention):
 
-Because:
+s3://<bucket>/raw/customers/
 
-Keeping technical cleaning upstream keeps dbt models cleaner and more readable
+s3://<bucket>/raw/orders/
 
-Avoids overloading dbt with CDC logic
+s3://<bucket>/raw/order_items/
 
-Reduces repeated full scans 
+s3://<bucket>/raw/products/
 
-Helps in handling of late arriving data 
+s3://<bucket>/raw/stores/
 
-Improves Snowflake compute efficiency
+This supports:
 
-This separation improves maintainability and cost control.
+Clear domain separation
 
-### 📊 Data Modeling 
-Medallion Architecture bronze,silver & gold 
-(Facts & dimensions )
-![medallion Diagram](assets/marts_staging.png)
-![Data lineage Diagram](assets/data_lineage.png)
-Kimball Star Schema
-![Modelling Diagram](assets/star_model.png)
-Facts : Have it own atomic line table 
+Easier event routing for Snowpipe auto-ingest
 
-orders_fact → 1 row per order
+Scalable onboarding of new sources
 
-store_sales_fact → 1 row per store per day
+2) Secure Snowflake Access to S3 (IAM Role–Based)
+   
 
-product_sales_fact → 1 row per product per day
+To keep access secure and cloud-native, Snowflake loads from S3 via an IAM role. In Snowflake, this is implemented using:
 
-customer_revenue_fact → 1 row per customer
+Storage Integration (trust relationship + external ID)
 
-Dimensions :Provide contexts to the facts 
+External Stage referencing the S3 path
 
-dim_dates
+No static keys stored in code
 
-dim_stores
+This demonstrates enterprise-grade security and aligns with best practices for external loading.
 
-dim_products
+3) Snowpipe Auto-Ingestion into Landing Tables (Bronze)
 
-dim_customers
+For each dataset, the same ingestion pattern is used:
 
-Modeling Principles Applied
+a) Create a Landing Table in Snowflake (raw/landing = Bronze entry point)
+b) Create a File Format (CSV rules, date parsing, delimiters)
+c) Create an External Stage (S3 path + integration + file format)
+d) Create a Pipe to auto-ingest from the stage into the landing table
+e) Validate ingestion using Pipe Status (ensure files are processed)
 
-Surrogate keys (date_id)
+This pattern is repeated per landing table to support modularity and traceability.
 
-Tested the quality of the data using single test , generic test and customised test as where appropriate 
-![Testing](assets/data_test.png)
+✅ Outcome: Event-driven ingestion with Snowpipe (no manual load jobs).
 
-Grain awareness enbaling same metric definition across semantic layer
+4) Incremental CDC with Snowflake Streams (No Full Scans)
+   ![Streams Diagram](assets/streams&task.png)
 
-Avoided double aggregation
+After data lands, a standard stream is created on each landing table to capture changes:
 
-Cancelled revenue excluded from net revenue 
+Inserts / updates captured as change records
 
-Single source of truth defined at order grain
+Prevents reprocessing entire tables when new files arrive
 
-### ⚙ Orchestration (Current State)
+Supports incremental processing at low cost
 
-Airflow is Dockerized and runs locally using docker-compose.
-![Docker](assets/docker_compose.png)
+✅ Outcome: CDC-driven incremental loads.
 
-Current Orchestration
+5) Light Transform + Deduplication with Snowflake Tasks (Silver)
 
-Airflow DAG triggers dbt build
-![Dag](assets/dag.png)
+A scheduled Snowflake Task runs every 5 minutes to:
 
-dbt dependency graph handled via Cosmos
+Deduplicate records (based on business keys + latest timestamp)
+
+Apply basic standardization (types, casing, null handling)
+
+Write cleaned outputs into Silver tables
+
+Runtime behavior:
+
+If no new data arrives, PIPE_STATUS shows no ingestion activity
+
+Streams and tasks only process new changes
+
+✅ Outcome: clean + incremental Silver tables before dbt begins.
+
+### 🧪 dbt Core Transformation & Modeling
+ ![Lineage Diagram](assets/data_lineage.png)
+Medallion Architecture
+
+Bronze: Snowpipe landing tables (raw ingestion)
+
+Silver: Snowflake task outputs (cleaned + standardized + deduped)
+
+Gold: dbt marts (facts + dimensions)
+
+Why dbt starts from Silver
+
+dbt pulls from the Silver source models and focuses on:
+
+Business logic
+
+Consistent definitions
+
+Dimensional modeling
+
+Governance (tests + documentation)
+
+Design decision: We intentionally avoided duplicating incremental logic in dbt because CDC is already handled upstream (Streams + Tasks). This keeps dbt models simpler, clearer, and easier to maintain.
+
+Kimball Modeling (Star Schema + Grain Discipline)
+
+Gold models follow Kimball best practices:
+
+Clear grain per fact table
+
+No double aggregation
+
+Single source of truth at atomic level
+
+Cancelled revenue handled separately to avoid inflating net revenue
+
+Metrics defined once and reused consistently
+
+Example Facts (Atomic grains)
+
+fact_orders → 1 row per order
+
+fact_store_sales_daily → 1 row per store per day
+
+fact_product_sales_daily → 1 row per product per day
+
+fact_customer_revenue → 1 row per customer
+
+Dimensions
+
+dim_date
+
+dim_store
+
+dim_product
+
+dim_customer
+
+Data Quality (Tests + Docs)
+
+Data quality is enforced using dbt:
+
+Generic tests (not_null, unique, accepted_values)
+
+Custom tests where needed
+
+Model documentation to support maintainability and onboarding
+
+### ⚙️ Orchestration (Airflow)
+ ![Dag Diagram](assets/dag.png)
+
+Airflow is dockerized for local production parity:
+
+Runs via docker-compose
+
+Triggers dbt build
+
+Orchestration visibility in Airflow UI
+
+Prepares the platform for future enterprise deployment (MWAA/Astronomer)
+
+Current State
+
+Airflow triggers dbt workflows (dependency graph handled in dbt)
 
 Success/failure visible in Airflow UI
 
-### 🚀 Planned Full Enterprise Orchestration (In Progress)
+Planned Next Phase (Enterprise Orchestration)
 
-Next phase:
-
-Snowflake Freshness Check
-    ↓
-dbt build (staging + marts)
-    ↓
-Power BI dataset refresh
-    ↓
-Slack success/failure alerts
+Snowflake freshness check / ingestion check
+→ dbt build (staging + marts)
+→ Power BI dataset refresh
+→ Slack alerts (success/failure)
 
 Goal:
 
-Centralized orchestration
-
-Smart watermark-based execution
+End-to-end observability
 
 Avoid unnecessary dbt runs
 
-Full end-to-end observability
+Watermark-driven execution
 
-### 📈 Power BI Layer
-Features:
+### 📊 Power BI Delivery (Gold Only)
+ ![Executive Diagram](assets/executive_overview.png)
 
-Executive Overview
-![Overview Diagram](assets/executive_overview.png)
+Power BI connects only to Gold marts, not raw tables.
+This ensures:
 
-Store Performance
-![Store Diagram](assets/store_performacedash.png)
+Consistent metrics
 
-SLA & Operations
-![SLA Diagram](assets/sla_dash.png)
+Better performance
 
-Product Performance
-![Product Diagram](assets/productsdash.png)
+Controlled warehouse costs
 
-Incremental Refresh (Date-based partitioning)
-![IncrementalR Diagram](assets/incremental_refresh.png)
+Performance / Cost Decisions
 
-KPIs include:
+Import Mode (avoids constant Snowflake querying)
 
-Total Revenue
+Incremental Refresh (date-based partitioning)
 
-Revenue vs Last Year %
+Carefully designed measures + slicers for usability
 
-Cancelled Revenue
+Audience-Driven Dashboards
 
-SLA On-Time %
+Executive Overview (leadership)
 
-Customer Churn Rate
+Store Performance (regional managers)
 
-Revenue vs Target
+Product Performance (product/marketing)
 
-### 💰 Cost Optimization Strategy
+Customer & Sales (commercial teams)
 
-Designed with cost-awareness in mind:
+SLA & Operations (ops stakeholders)
+
+### 💰 Cost Optimisation Strategy
+
+Designed to be scalable and cost-conscious:
 
 X-Small Snowflake warehouse
 
-Incremental CDC using Streams
+CDC via Streams (no full scans)
 
-Avoided redundant dbt incremental materialization
+Tasks only run lightweight standardization + dedupe
 
-Used Import mode with Incremental Refresh in Power BI
+dbt does business modeling without duplicate incremental logic
 
-Watermark gating to avoid unnecessary dbt builds
+Power BI Import mode + incremental refresh reduces compute
 
-Separated technical cleaning from business transformation
+Gold-only exposure controls query footprint
 
-This prevents:
+▶️ Run Locally
 
-Repeated full-table scans
+Clone repo
 
-Excessive compute consumption
-
-Over-complicated dbt models
-
-🖥 Running Locally
-1️⃣ Clone Repo
 git clone <repo_url>
 cd auto_project
-2️⃣ Start Airflow (Docker)
+
+Start Airflow (Docker)
+
 docker-compose up -d
 
-Access Airflow:
-
+Open Airflow UI
 http://localhost:8080
+
 ### 🧩 Future Improvements
 
-Full orchestration from ingestion → BI refresh
+Full orchestration: ingestion → dbt → Power BI refresh → Slack
 
-Automated data quality checks
+Automated data quality monitoring & alerting
 
-ML-based revenue forecasting
+dbt snapshots for slowly changing dimensions (SCD)
 
-Deployment to MWAA / Astronomer
+CI pipeline for dbt tests (PR checks)
 
-CI pipeline for dbt testing
+Deploy to MWAA / Astronomer
 
-Enhanced monitoring dashboard
-
-Handling Slow changing dimension models via snapshots in dbt 
+ML-based forecasting (revenue / demand)
 
 ### 🏆 What This Project Demonstrates
 
-End-to-end modern data platform design
+Production-style modern data platform thinking
 
-Event-driven ingestion
+Secure cloud ingestion (AWS + Snowflake IAM integration)
 
-CDC architecture
+Event-driven ingestion + CDC architecture
 
-Dimensional modeling discipline
+Clear separation of technical vs business transformation
 
-Airflow orchestration capability
+Dimensional modeling discipline + grain awareness
 
-BI delivery best practices
+Orchestrated workflows and monitoring
 
-Cost-conscious Snowflake usage
-
-Production-oriented thinking
+Cost-efficient BI delivery for stakeholders
