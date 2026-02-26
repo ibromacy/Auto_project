@@ -234,6 +234,8 @@ Data quality is enforced using dbt:
 
 Generic tests (not_null, unique, accepted_values)
 
+Singular tests (net_revenue and gross order value is not zero or negative)
+
 Custom tests where needed
 
 Model documentation to support maintainability and onboarding
@@ -273,7 +275,7 @@ Avoid unnecessary dbt runs
 Watermark-driven execution
 
 ### 📊 Power BI Delivery (Gold Only)
- ![Executive Diagram](assets/executive_overview.png)
+ ![Executive Diagram](assets/executive_overview2025.png)
 
 Power BI connects only to Gold marts, not raw tables.
 This ensures:
