@@ -22,13 +22,6 @@ models:
         tests:
           - not_null
 
-      - name: status
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['CREATED','SHIPPED','DELIVERED','CANCELLED','RETURNED']
-
   - name: order_items_stg
     description: Line-level order items used to derive revenue.
     columns:
@@ -118,6 +111,12 @@ models:
              arguments:
               to: ref('orders_stg')
               field: order_id
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+             arguments:
+                values: ['CREATED','SHIPPED','DELIVERED','CANCELLED','RETURNED']         
 
 
 
@@ -190,7 +189,7 @@ models:
       tests:
         - not_null
         - relationships:
-            arguments:
+           arguments: 
              to: ref('dim_dates')
              field: full_date
 

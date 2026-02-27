@@ -3,3 +3,11 @@
 target/
 dbt_packages/
 logs/
+dbt_internal_packages/
+venv/
+dbt_env/
+.env/
+/Scripts/
+/Lib/
+/Include/
+/pyenv.cfg
