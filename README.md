@@ -163,6 +163,21 @@ Without SCD Type 2, a product margin change retroactively alters all historical 
 
 Test failures block downstream models from building. Tests run both locally before every PR and automatically in CI on every pull request to main.
 
+**Data Reliability**
+
+Data drift and late-arriving data were considered throughout the platform design.
+Dimension attribute drift is handled via SCD Type 2 snapshots on `dim_store`,
+`dim_product`, and `dim_customer` ensuring historical facts always reflect the
+dimension values active at the time of the transaction. Metric definition drift
+is prevented by centralising revenue logic in `orders_fact` and deriving all
+downstream facts from it. Schema drift is caught by dbt tests before reaching
+Gold. Late-arriving data flows through naturally  delayed files land in S3,
+Snowpipe ingests them into Bronze, and the Standard Stream captures the resulting
+insert as a new DML event for the next Task run. At the BI layer, a 30-day
+incremental refresh window ensures Power BI re-queries recent Gold partitions on
+every refresh.
+
+
 ---
 
 ## 🔁 CI — GitHub Actions
